@@ -95,9 +95,12 @@ public class convert {
                 inputFile.delete();
                 outputFile.delete();
                 return str;
+            }else{
+                return "Ошибка конвертации";
             }
+
         }
-        return "";
+        return "Ошибка OpenOfficeConnection";
     }
 
     private static String encodeFileToBase64Binary(File file) throws IOException {

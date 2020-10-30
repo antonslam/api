@@ -4,11 +4,10 @@ package com.tss_app.api.rout;
 import com.google.gson.Gson;
 import org.springframework.web.bind.annotation.*;
 import com.tss_app.api.request_class.convert;
-import org.springframework.web.client.HttpClientErrorException;
+
 
 import java.io.IOException;
-import java.net.http.HttpConnectTimeoutException;
-import java.net.http.HttpHeaders;
+
 
 @RestController
 @RequestMapping("api")
@@ -21,10 +20,10 @@ public class Routs {
             if (obj.SaveFile()) {
                 return obj.convert2PDF();
             }else{
-                return "";
+                return "Ошибка сохранения";
             }
         }
-            return "";
+            return "Не верный skey";
     }
 
 }
