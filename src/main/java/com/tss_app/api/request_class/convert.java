@@ -10,7 +10,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.tomcat.util.codec.binary.Base64;
 
 import java.io.*;
-import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
@@ -31,7 +30,7 @@ public class convert {
         return this.skey.equals("tss_aaa");
     }
 
-    public void SaveFile(){
+    public boolean SaveFile(){
 
         int leftLimit = 48; // numeral '0'
         int rightLimit = 122; // letter 'z'
@@ -43,42 +42,70 @@ public class convert {
                 .limit(targetStringLength)
                 .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
+        generatedString = "files/"+generatedString;
 
-        byte[] data = Base64.decodeBase64(this.base);
+
         try (OutputStream stream = new FileOutputStream(generatedString+"."+this.type)) {
+            byte[] data = Base64.decodeBase64(this.base);
             stream.write(data);
             this.saved_file = generatedString;
-        } catch (FileNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+            return false;
         }
+        return true;
     }
     public String convert2PDF() throws IOException {
         java.io.File inputFile = new java.io.File(this.saved_file+"."+this.type);
         java.io.File outputFile = new java.io.File(this.saved_file+".pdf");
 
         OpenOfficeConnection connection = new SocketOpenOfficeConnection(8100);
-        connection.connect();
-
-        DocumentConverter converter = new OpenOfficeDocumentConverter(connection);
-
-        if(this.type.equals("docx")) {
-            DocumentFormat docx = new DocumentFormat("Microsoft Word 2007 XML", DocumentFamily.TEXT, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx");
-            converter.convert(inputFile, docx, outputFile, null);
-        }else{
-            converter.convert(inputFile, outputFile);
+        try {
+            connection.connect();
+        }catch (Exception e){
+            e.printStackTrace();
+            inputFile.delete();
+            connection = null;
         }
-        connection.disconnect();
 
-        String str = encodeFileToBase64Binary(outputFile);
-        inputFile.delete();
-        outputFile.delete();
-        return str;
+        if (connection != null) {
+            DocumentConverter converter = new OpenOfficeDocumentConverter(connection);
+
+            try {
+
+                if (this.type.equals("docx")) {
+                    DocumentFormat docx = new DocumentFormat("Microsoft Word 2007 XML", DocumentFamily.TEXT, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "docx");
+                    converter.convert(inputFile, docx, outputFile, null);
+                } else if (this.type.equals("xlsx")) {
+                    DocumentFormat xlsx = new DocumentFormat("Microsoft Excel 2007 XML", DocumentFamily.SPREADSHEET, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlsx");
+                    converter.convert(inputFile, xlsx, outputFile, null);
+                } else {
+                    converter.convert(inputFile, outputFile);
+                }
+            } catch (Exception e){
+                e.printStackTrace();
+                ERROR(connection, inputFile);
+                connection = null;
+            }
+
+            if(connection != null) {
+                connection.disconnect();
+
+                String str = encodeFileToBase64Binary(outputFile);
+                inputFile.delete();
+                outputFile.delete();
+                return str;
+            }
+        }
+        return "";
     }
 
     private static String encodeFileToBase64Binary(File file) throws IOException {
         byte[] encoded = Base64.encodeBase64(FileUtils.readFileToByteArray(file));
         return new String(encoded, StandardCharsets.US_ASCII);
+    }
+    private static void ERROR(OpenOfficeConnection connection, File inputFile){
+        connection.disconnect();
+        inputFile.delete();
     }
 }

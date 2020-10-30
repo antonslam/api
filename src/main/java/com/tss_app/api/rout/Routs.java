@@ -18,8 +18,11 @@ public class Routs {
     public String convert(@RequestBody String json) throws IOException {
         convert  obj = new Gson().fromJson(json, convert.class);
         if (obj.is_skey() && !obj.type.isEmpty() && !obj.base.isEmpty()){
-            obj.SaveFile();
-            return obj.convert2PDF();
+            if (obj.SaveFile()) {
+                return obj.convert2PDF();
+            }else{
+                return "";
+            }
         }
             return "";
     }
