@@ -15,20 +15,15 @@ import java.util.Random;
 
 public class convert {
     public String base;
-    public String skey;
     public String type;
     String saved_file;
 
 
-    public convert(String base, String skey, String type){
+    public convert(String base, String type){
         this.base = base;
         this.type = type;
-        this.skey = skey;
     }
 
-    public boolean is_skey(){
-        return this.skey.equals("tss_aaa");
-    }
 
     public boolean SaveFile(){
 

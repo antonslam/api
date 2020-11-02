@@ -16,14 +16,14 @@ public class Routs {
     @PostMapping("convert")
     public String convert(@RequestBody String json) throws IOException {
         convert  obj = new Gson().fromJson(json, convert.class);
-        if (obj.is_skey() && !obj.type.isEmpty() && !obj.base.isEmpty()){
+        if (!obj.type.isEmpty() && !obj.base.isEmpty()){
             if (obj.SaveFile()) {
                 return obj.convert2PDF();
             }else{
                 return "Ошибка сохранения";
             }
         }
-            return "Не верный skey";
+            return "Нет данных";
     }
 
 }
